@@ -1,0 +1,6 @@
+# IDE data directory
+.idea/
+
+# directories
+node_modules/
+

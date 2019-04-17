@@ -1,0 +1,14 @@
+{
+  "extends": "airbnb",
+  "plugins": ["mocha", "chai-friendly"],
+  "rules": {
+    "func-names": [
+      "error",
+      "never"
+    ],
+    "mocha/no-exclusive-tests": "error"
+  },
+  "env": {
+    "mocha": true
+  }
+}

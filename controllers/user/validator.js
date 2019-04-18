@@ -3,20 +3,20 @@ const configValidation = require('../../system/configValidation');
 
 const get = {
   params: {
-    id: joi.string().length(36).required(),
+    id: joi.string().uuid().required(),
   },
 };
 
 const getValidationCode = {
   query: {
-    uuid: joi.string().length(36).required(),
+    uuid: joi.string().uuid().required(),
   },
 };
 
 const validateEmail = {
   query: {
-    token: joi.string().length(36).required(),
-    uuid: joi.string().length(36).required(),
+    token: joi.string().uuid().required(),
+    uuid: joi.string().uuid().required(),
   },
 };
 
@@ -31,7 +31,7 @@ const resetPassword = {
   params: {
     password: configValidation.password,
     password_verify: configValidation.password,
-    token: joi.string().length(36).required(),
+    token: joi.string().uuid().required(),
   },
 };
 

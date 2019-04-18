@@ -7,7 +7,8 @@ const create = {
     last_name: joi.string().max(50).required(),
     password: configValidation.password,
     password_verify: configValidation.password,
-    email: joi.string().email().min(8).max(355).required(),
+    email: joi.string().email().min(8).max(355)
+      .required(),
     some_data: joi.string().max(50).required(),
   },
 };

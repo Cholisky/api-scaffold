@@ -1,4 +1,5 @@
-const _ = require('lodash');
+const get = require('lodash/get');
+const pick = require('lodash/pick');
 const uuidv4 = require('uuid/v4');
 const moment = require('moment-timezone');
 
@@ -33,7 +34,7 @@ const getUserByUUID = async (userUUID) => {
     const user = (await db('app_user').where('app_user_uuid', userUUID))[0];
     user.user_type = (await db('user_type').select('type').where('id', user.user_type_id))[0].type;
     user.some_data = (await db(user.user_type).select('some_data').where('id', user.id))[0].some_data;
-    return _.pick(user, ['first_name', 'last_name', 'email', 'email_verified', 'user_type', 'some_data']);
+    return pick(user, ['first_name', 'last_name', 'email', 'email_verified', 'user_type', 'some_data']);
   } catch (error) {
     return error;
   }
@@ -45,8 +46,8 @@ const setEmailValidated = async (userUuid, uuid) => {
       email_verify_token: uuid,
       app_user_uuid: userUuid,
     });
-    const expiry = _.get(tokenData, 'email_verify_token_expiry');
-    const id = _.get(tokenData, 'id');
+    const expiry = get(tokenData, 'email_verify_token_expiry');
+    const id = get(tokenData, 'id');
 
     if (!tokenData || moment(expiry).isBefore(moment())) {
       return { errorMessage: 'Invalid token' };
@@ -90,10 +91,48 @@ const getNewEmailValidation = async (userUUID) => {
 
 const getValidationCode = uuid => db('app_user').select('email_verify_token', 'email_verify_token_expiry').where('app_user_uuid', uuid);
 
+const getPasswordToken = async (email) => {
+  try {
+    const [userId] = await db('app_user').select('id').where('email', email);
+    const token = uuidv4();
+    await db('app_user').update({
+      password_reset_token: token,
+      password_reset_token_expiry: moment().add(1, 'hour'),
+    }).where('id', userId);
+    return token;
+  } catch (error) {
+    return error;
+  }
+};
+
+const resetPassword = async (token, password) => {
+  try {
+    const [user] = await db('app_user').where('password_reset_token', token);
+    if (!user) {
+      return Error('Invalid token');
+    }
+    if (moment(get(user, 'password_reset_token_expiry')).isBefore(moment())) {
+      return Error('Token expired');
+    }
+    const hashedPassword = await crypt.hashPassword(password);
+
+    await db('app_user').update({
+      password_reset_token: null,
+      password_reset_token_expiry: null,
+      password: hashedPassword,
+    }).where('id', user.id);
+    return 'Password updated successfully';
+  } catch (error) {
+    return error;
+  }
+};
+
 module.exports = {
   insert,
   getUserByUUID,
   setEmailValidated,
   getValidationCode,
   getNewEmailValidation,
+  getPasswordToken,
+  resetPassword,
 };

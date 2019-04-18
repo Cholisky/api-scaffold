@@ -47,8 +47,32 @@ const getValidationCode = async (request, h) => {
   }
 };
 
+const forgotPassword = async (request, h) => {
+  try {
+    const email = get(request, 'params.email');
+    const token = model.getPasswordToken(email);
+    // TODO: this should mail the token to the user in a link
+    return h.response(token);
+  } catch (error) {
+    return Boom.badRequest(error);
+  }
+};
+
+const resetPassword = async (request, h) => {
+  try {
+    const token = get(request, 'params.token');
+    const password = get(request, 'params.password');
+    const response = await model.resetPassword(token, password);
+    return h.response(response);
+  } catch (error) {
+    return Boom.badRequest(error);
+  }
+};
+
 module.exports = {
   get,
   getValidationCode,
   validateEmail,
+  forgotPassword,
+  resetPassword,
 };

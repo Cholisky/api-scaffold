@@ -44,7 +44,7 @@ const createClient1 = async (request, expect, validate = false) => {
     }
     return clientInfo;
   } catch (error) {
-    throw error;
+    return error;
   }
 };
 

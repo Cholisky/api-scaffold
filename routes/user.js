@@ -33,6 +33,26 @@ exports.plugin = {
         handler: controller.getValidationCode,
         validate: validator.getValidationCode,
       },
+    }, {
+      method: 'POST',
+      path: '/forgotPassword',
+      options: {
+        description: 'endpoint to get password reset token',
+        auth: false,
+        tags: ['api', 'user'],
+        handler: controller.forgotPassword,
+        validate: validator.forgotPassword,
+      },
+    }, {
+      method: 'POST',
+      path: '/resetPassword',
+      options: {
+        description: 'endpoint to get reset password',
+        auth: false,
+        tags: ['api', 'user'],
+        handler: controller.resetPassword,
+        validate: validator.resetPassword,
+      },
     },
     ]);
   },

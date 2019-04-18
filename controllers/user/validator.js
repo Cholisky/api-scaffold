@@ -1,4 +1,5 @@
 const joi = require('joi');
+const configValidation = require('../../system/configValidation');
 
 const get = {
   params: {
@@ -19,8 +20,25 @@ const validateEmail = {
   },
 };
 
+const forgotPassword = {
+  params: {
+    email: joi.string().email().min(8).max(355)
+      .required(),
+  },
+};
+
+const resetPassword = {
+  params: {
+    password: configValidation.password,
+    password_verify: configValidation.password,
+    token: joi.string().length(36).required(),
+  },
+};
+
 module.exports = {
   get,
   getValidationCode,
   validateEmail,
+  forgotPassword,
+  resetPassword,
 };

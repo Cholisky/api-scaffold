@@ -21,14 +21,14 @@ const validateEmail = {
 };
 
 const forgotPassword = {
-  params: {
+  payload: {
     email: joi.string().email().min(8).max(355)
       .required(),
   },
 };
 
 const resetPassword = {
-  params: {
+  payload: {
     password: configValidation.password,
     password_verify: configValidation.password,
     token: joi.string().uuid().required(),

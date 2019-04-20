@@ -11,10 +11,6 @@ exports.up = knex => knex.schema
     table.foreign('user_type_id').references('user_type.id').onDelete('RESTRICT');
     table.uuid('app_user_uuid').index().unique().notNullable()
       .defaultTo(knex.raw('uuid_generate_v4()'));
-    table.uuid('email_verify_token').nullable();
-    table.uuid('password_reset_token').nullable();
-    table.timestamp('email_verify_token_expiry').nullable();
-    table.timestamp('password_reset_token_expiry').nullable();
     table.boolean('email_verified').defaultTo(false).notNullable();
     table.timestamp('last_login_date').nullable();
     table.specificType('last_login_ip', 'inet').nullable();

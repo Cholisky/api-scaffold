@@ -109,7 +109,7 @@ const validateToken = async (decoded, request /* , h */) => {
       return Boom.badRequest('Invalid user data');
     }
 
-    if (userType === 'Admin') {
+    if (userType === 'admin') {
       allTypes.forEach((type) => {
         request[`is${type}`] = true;
       });

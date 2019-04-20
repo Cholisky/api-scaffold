@@ -10,12 +10,12 @@ exports.plugin = {
       options: {
         description: 'return user data to authed user',
         tags: ['api', 'user'],
-        handler: controller.get,
+        handler: controller.getUser,
         validate: validator.get,
       },
     }, {
       method: 'GET',
-      path: '/validate',
+      path: '/validateEmail',
       options: {
         description: 'endpoint to take email validation token',
         auth: false,

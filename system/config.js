@@ -1,3 +1,5 @@
+const moment = require('moment-timezone');
+
 module.exports = {
   basePath: '/api/v1',
   version: '1.0.0',
@@ -53,6 +55,7 @@ module.exports = {
     ],
   },
   tokens: {
+    // eslint-disable-next-line max-len
     key: process.env.JWT_KEY || 'WYqLEzmzJ3NFvWs4a9Mfyhmjm9jubVmU/RE9/hfodbHVv94mzE+69edYF0EMyeqdsdkW1J3xT2HAwJ/ts+2x1DEpT3bHHaJYyV3upkSIXEuZSXojrLqRasP823IW1cW4XdjLTxQq8L/+VIaGTKJLUgTS1AMwtCyqOxRq/sg59XLV1fVHdkMzBGSaBVEATCd3+W7mc1CB/dxLVqef3dckWCW/CPJrpWyli1OWdcAUKF7WkqyH4rOFsD13rlGHhoaKJX3TEXGFqNON6Yr6hyjHqwekVgZjqITB8haoy5FiGLdKErBfFQ/Kgxt/Iw8PglNvMmvUKGSiLBxGeglyHfiuQA==',
     verifyEmailExpiry: 24,
     resetPasswordExpiry: 1,
@@ -61,18 +64,18 @@ module.exports = {
     saltRounds: 10,
   },
   cookieOptions: {
-    ttl: 900000,
+    expires: moment().add(1, 'day'),
     encoding: 'none',
     isSecure: process.env.WEB_PROTOCOL === 'https://',
     isHttpOnly: true,
     clearInvalid: true,
-    strictHeader: false,
+    strictHeader: true,
     path: '/',
-    domain: process.env.ACTUAL_ADDRESS ? `.${process.env.ACTUAL_ADDRESS}` : 'testapp.com',
+    domain: process.env.ACTUAL_ADDRESS ? `.${process.env.ACTUAL_ADDRESS}` : null,
   },
   routes: {
     cors: {
-      origin: ['http://api.testapp.com:3500', 'http://testapp.com:3000', 'http://127.0.0.1:3500'],
+      origin: ['http://api.testapp.com:3500', 'http://testapp.com:3000'],
       credentials: true,
     },
   },

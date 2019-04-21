@@ -1,17 +1,13 @@
 const { expect } = require('chai');
 const jwt = require('jsonwebtoken');
 let request = require('supertest');
+const get = require('lodash/get');
+
 const app = require('../../system/server');
 const config = require('../../system/config');
 const { createClient1 } = require('../helpers/create_client');
 const { consoleError, cookieCutter } = require('../helpers/methods');
-
-// const checkResponse = (startData, responseData, keys) => {
-//   keys.each((key) => {
-//     expect(startData[key]).is.equal(responseData[key],
-//     `${key}: ${startData[key]} !== ${responseData[key]}`);
-//   });
-// };
+const { invalidToken } = require('../helpers/constants');
 
 describe('Auth route tests', () => {
   let type1NotValidated;
@@ -30,7 +26,6 @@ describe('Auth route tests', () => {
       type1Validated = await createClient1(request, expect, true);
       type1NotValidated = await createClient1(request, expect);
     } catch (error) {
-      console.log(error);
       throw consoleError(error);
     }
   });
@@ -49,8 +44,8 @@ describe('Auth route tests', () => {
         .expect((response) => {
           expect(response.body.message).to.equal('login success');
           const token = jwt.decode(response.body.token);
-          expect(type1Validated.email).is.equal(token.email, 'email match error');
-          expect(type1Validated.uuid).is.equal(token.uuid, 'uuid match error');
+          expect(type1Validated.email).is.equal(get(token, 'email'), 'email match error');
+          expect(type1Validated.uuid).is.equal(get(token, 'uuid'), 'uuid match error');
         })
         .end(done);
     });
@@ -63,8 +58,8 @@ describe('Auth route tests', () => {
         .expect((response) => {
           expect(response.body.message).to.equal('login success');
           const token = jwt.decode(response.body.token);
-          expect(type1NotValidated.email).is.equal(token.email, 'email match error');
-          expect(type1NotValidated.uuid).is.equal(token.uuid, 'uuid match error');
+          expect(type1NotValidated.email).is.equal(get(token, 'email'), 'email match error');
+          expect(type1NotValidated.uuid).is.equal(get(token, 'uuid'), 'uuid match error');
         })
         .end(done);
     });
@@ -107,7 +102,7 @@ describe('Auth route tests', () => {
         .post('/api/v1/auth/login')
         .send({
           email: type1Validated.email,
-          password: 'asdfasdfASDFASDF234234234asfdasdfasdfasdf;lasdfklajsdhflkasdgfhalskdhasdlgkjhasdlkjhasdlfkjhasdflashdflasjhdflasjdfhalsjdfh',
+          password: 'asdfasdfASDFASDF234234234asfdasdfasdfasdf;lasdfklajsdhflkasdgfhalskdhasdlgkjhasdlkjhasdlfkjhasdfl',
         })
         .expect(400)
         .expect((response) => {
@@ -154,34 +149,42 @@ describe('Auth route tests', () => {
 
   // this needs to be sorted out - cannot currently get the test to pass,
   // fails with invalid cookie header
-  xdescribe('GET /api/v1/auth/reauth', () => {
-    let cookie;
-
-    it('take a valid cookie with a valid token and return an error', (done) => {
+  describe('GET /api/v1/auth/reauth', () => {
+    it('take a valid cookie with a valid token and return a new token and validation message', (done) => {
       request
         .post('/api/v1/auth/login')
         .send({ email: type1Validated.email, password: type1Validated.password })
-        // .expect(200)
+        .expect(200)
         .expect((response) => {
           expect(response.body.message).to.equal('login success');
           const token = jwt.decode(response.body.token);
-          expect(type1Validated.email).is.equal(token.email, 'email match error');
-          expect(type1Validated.uuid).is.equal(token.uuid, 'uuid match error');
-          [cookie] = response.headers['set-cookie'];
-          // cookie = cookieCutter(response);
-          console.log('cookie: ', cookie)
+          expect(type1Validated.email).is.equal(get(token, 'email'), 'email match error');
+          expect(type1Validated.uuid).is.equal(get(token, 'uuid'), 'uuid match error');
         })
-        .end((firstResponse) => {
+        .end((error, firstResponse) => {
           request
             .get('/api/v1/auth/reauth')
-            .set('Cookie', cookie)
+            .set('Cookie', cookieCutter(firstResponse))
+            .expect(200)
             .expect((response) => {
-              console.log('first response: ', cookieCutter(firstResponse))
-              console.log(response.body)
+              expect(get(response, 'body.message')).is.equal('validation success');
+              const token = jwt.decode(response.body.token);
+              expect(type1Validated.email).is.equal(get(token, 'email'), 'email match error');
+              expect(type1Validated.uuid).is.equal(get(token, 'uuid'), 'uuid match error');
             })
-            // .expect(200)
             .end(done);
         });
     });
+  });
+
+  it('should take an invalid cookie with a valid token and return a new token and validation message', (done) => {
+    request
+      .get('/api/v1/auth/reauth')
+      .set('Cookie', `token=${invalidToken}`)
+      .expect(401)
+      .expect((response) => {
+        expect(get(response, 'body.message')).is.equal('Invalid token');
+      })
+      .end(done);
   });
 });

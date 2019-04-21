@@ -1,12 +1,12 @@
-const _ = require('lodash');
+const get = require('lodash/get');
 const Boom = require('boom');
 const moment = require('moment-timezone');
 
 const model = require('../../models/user/model');
 
-const get = async (request, h) => {
-  const idParam = _.get(request, 'query.id');
-  const uuid = (_.get(request, 'isAdmin') && idParam) ? idParam : _.get(request, 'auth.credentials.uuid');
+const getUser = async (request, h) => {
+  const idParam = get(request, 'params.id');
+  const uuid = (get(request, 'isAdmin') && idParam) ? idParam : get(request, 'auth.credentials.uuid');
 
   if (!uuid) {
     return Boom.badRequest('token error');
@@ -18,8 +18,8 @@ const get = async (request, h) => {
 
 const validateEmail = async (request, h) => {
   try {
-    const token = _.get(request, 'query.token');
-    const userUuid = _.get(request, 'query.uuid');
+    const token = get(request, 'query.token');
+    const userUuid = get(request, 'query.uuid');
     const response = await model.setEmailValidated(userUuid, token);
 
     if (response.errorMessage) {
@@ -33,12 +33,16 @@ const validateEmail = async (request, h) => {
 
 const getValidationCode = async (request, h) => {
   try {
-    const [result] = await model.getValidationCode(_.get(request, 'query.uuid'));
+    const userUUID = get(request, 'query.uuid');
+    const user = await model.getUserByUUID(userUUID);
+    if (!user || user.email_verified) {
+      return Boom.badRequest('Invalid token');
+    }
+    const validationObject = await model.getNewEmailValidation(user.id);
+    const token = get(validationObject, 'token');
+    const expired = moment(get(validationObject, 'token_expiry')).isBefore(moment());
 
-    const token = _.get(result, 'email_verify_token');
-    const expired = moment(_.get(result, 'email_verify_token_expiry')).isBefore(moment());
-
-    if (!token || expired) {
+    if (!validationObject || !token || expired) {
       return Boom.badRequest('Invalid validation token');
     }
     return h.response(token);
@@ -49,7 +53,7 @@ const getValidationCode = async (request, h) => {
 
 const forgotPassword = async (request, h) => {
   try {
-    const email = get(request, 'params.email');
+    const email = get(request, 'payload.email');
     const token = model.getPasswordToken(email);
     // TODO: this should mail the token to the user in a link
     return h.response(token);
@@ -60,8 +64,8 @@ const forgotPassword = async (request, h) => {
 
 const resetPassword = async (request, h) => {
   try {
-    const token = get(request, 'params.token');
-    const password = get(request, 'params.password');
+    const token = get(request, 'payload.token');
+    const password = get(request, 'payload.password');
     const response = await model.resetPassword(token, password);
     return h.response(response);
   } catch (error) {
@@ -70,7 +74,7 @@ const resetPassword = async (request, h) => {
 };
 
 module.exports = {
-  get,
+  getUser,
   getValidationCode,
   validateEmail,
   forgotPassword,

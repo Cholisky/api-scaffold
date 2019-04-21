@@ -6,7 +6,8 @@
       "error",
       "never"
     ],
-    "mocha/no-exclusive-tests": "error"
+    "mocha/no-exclusive-tests": "error",
+    "max-len": [2, 160, 4]
   },
   "env": {
     "mocha": true

@@ -46,7 +46,7 @@ const insert = async (userData, trx) => {
 const getUserByUUID = async (userUUID) => {
   try {
     const user = await db('app_user')
-      .select(['app_user.id', 'first_name', 'last_name', 'email', 'email_verified', 'type as user_type'])
+      .select(['app_user.id', 'app_user_uuid', 'first_name', 'last_name', 'email', 'email_verified', 'user_type.type as user_type'])
       .leftJoin('user_type', 'app_user.user_type_id', 'user_type.id')
       .where('app_user_uuid', userUUID)
       .first();
@@ -85,23 +85,19 @@ const setEmailValidated = async (userUuid, uuid) => {
   }
 };
 
-const getNewEmailValidation = async (userUUID) => {
+const getNewEmailValidation = async (userId) => {
   try {
     const token = uuidv4();
-    const user = await getUserByUUID(userUUID);
-    if (!user) {
-      return user;
-    }
 
     return db.transaction(trx => trx
-      .del('*')
+      .del()
       .from('email_token')
-      .where('app_user_id', user.id)
+      .where('app_user_id', userId)
       .then(() => trx
         .insert({
           token,
           token_expiry: moment().add(config.tokens.verifyEmailExpiry, 'hour').format('YYYY-MM-DD HH:mm:ss'),
-          app_user_id: user.id,
+          app_user_id: userId,
         }, ['token', 'token_expiry'])
         .into('email_token')
         .then(result => ({ token: result[0].token, token_expiry: result[0].token_expiry }))));
@@ -110,11 +106,11 @@ const getNewEmailValidation = async (userUUID) => {
   }
 };
 
-const getValidationCode = uuid => db('app_user')
-  .innerJoin('email_token', 'app_user.id', 'email_token.app_user_id')
-  .select(['token', 'token_expiry'])
-  .where('app_user.app_user_uuid', uuid)
-  .first();
+// const getValidationCode = uuid => db('app_user')
+//   .innerJoin('email_token', 'app_user.id', 'email_token.app_user_id')
+//   .select(['token', 'token_expiry'])
+//   .where('app_user.app_user_uuid', uuid)
+//   .first();
 
 const getPasswordToken = async (email) => {
   try {
@@ -159,7 +155,7 @@ module.exports = {
   insert,
   getUserByUUID,
   setEmailValidated,
-  getValidationCode,
+  // getValidationCode,
   getNewEmailValidation,
   getPasswordToken,
   resetPassword,

@@ -7,7 +7,7 @@
       "never"
     ],
     "mocha/no-exclusive-tests": "error",
-    "max-len": [2, 120, 4]
+    "max-len": [2, 160, 4]
   },
   "env": {
     "mocha": true

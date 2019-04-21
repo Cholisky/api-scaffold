@@ -34,10 +34,11 @@ const validateEmail = async (request, h) => {
 const getValidationCode = async (request, h) => {
   try {
     const userUUID = get(request, 'query.uuid');
-    let validationObject = await model.getValidationCode(userUUID);
-    if (!validationObject || moment(get(validationObject, 'expired')).isBefore(moment())) {
-      validationObject = await model.getNewEmailValidation(userUUID);
+    const user = await model.getUserByUUID(userUUID);
+    if (!user || user.email_verified) {
+      return Boom.badRequest('Invalid token');
     }
+    const validationObject = await model.getNewEmailValidation(user.id);
     const token = get(validationObject, 'token');
     const expired = moment(get(validationObject, 'token_expiry')).isBefore(moment());
 

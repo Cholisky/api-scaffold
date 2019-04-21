@@ -24,7 +24,7 @@ const login = async (request, h) => {
           email: result.email,
           uuid: result.app_user_uuid,
           emailVerified: result.email_verified,
-          userTypeId: result.user_type_id,
+          userType: result.user_type,
         },
         config.tokens.key,
         {
@@ -60,7 +60,7 @@ const checkAuth = async (request, h) => {
             email: result.email,
             uuid: result.app_user_uuid,
             emailVerified: result.email_verified,
-            userTypeId: result.user_type_id,
+            userType: result.user_type,
           },
           config.tokens.key,
           {

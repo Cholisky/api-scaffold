@@ -21,9 +21,8 @@ const createClient1 = async (request, expect, validate = false) => {
       .expect((response) => {
         uuid = response.text;
         expect(response.text.length).is.equal(36);
-        // const token = helpers.cookieCutter(response, true);
-        // decodedToken = jwt.decode(token);
-      });
+      })
+      .catch(error => console.log('POST /api/v1/userType1: ', error));
 
     clientInfo.uuid = uuid;
 
@@ -34,13 +33,15 @@ const createClient1 = async (request, expect, validate = false) => {
         .expect((response) => {
           uuidEmail = response.text;
           expect(response.text.length).is.equal(36);
-        });
+        })
+        .catch(error => console.log('Create client get validation code: ', error));
       await request
-        .get(`/api/v1/user/validate?uuid=${uuid}&token=${uuidEmail}`)
+        .get(`/api/v1/user/validateEmail?uuid=${uuid}&token=${uuidEmail}`)
         .expect(200)
         .expect((response) => {
           expect(response.text).is.equal('Email validated');
-        });
+        })
+        .catch(error => console.log('Create client email validation: ', error));
     }
     return clientInfo;
   } catch (error) {

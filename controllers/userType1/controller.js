@@ -19,7 +19,7 @@ const create = async (request, h) => {
       return Boom.badRequest(`Error in userType1 creation: ${get(result, 'errorMessage')}`);
     }
 
-    return h.response(result.app_user_uuid);
+    return h.response({ token: result.app_user_uuid });
   } catch (error) {
     return Boom.badRequest(`Error in userType1 creation: ${error}`);
   }

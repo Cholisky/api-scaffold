@@ -13,7 +13,7 @@ const getUser = async (request, h) => {
   }
   const user = await model.getUserByUUID(uuid);
 
-  return h.response(user);
+  return h.response({ user });
 };
 
 const validateEmail = async (request, h) => {
@@ -25,7 +25,7 @@ const validateEmail = async (request, h) => {
     if (response.errorMessage) {
       return Boom.badRequest(response.errorMessage);
     }
-    return h.response('Email validated');
+    return h.response({ message: 'Email validated' });
   } catch (error) {
     return Boom.badRequest('Error validating email: ', error);
   }
@@ -45,7 +45,9 @@ const getValidationCode = async (request, h) => {
     if (!validationObject || !token || expired) {
       return Boom.badRequest('Invalid validation token');
     }
-    return h.response(token);
+    // TODO: when email is integrated, this should send an email with a link to validate email
+    // TODO: api.testapp.com/api/v1/user/validateEmail?uuid=${userUUID}&token=${token}
+    return h.response({ token });
   } catch (error) {
     return Boom.badRequest(error);
   }
@@ -56,7 +58,7 @@ const forgotPassword = async (request, h) => {
     const email = get(request, 'payload.email');
     const token = model.getPasswordToken(email);
     // TODO: this should mail the token to the user in a link
-    return h.response(token);
+    return h.response({ token });
   } catch (error) {
     return Boom.badRequest(error);
   }
@@ -67,7 +69,7 @@ const resetPassword = async (request, h) => {
     const token = get(request, 'payload.token');
     const password = get(request, 'payload.password');
     const response = await model.resetPassword(token, password);
-    return h.response(response);
+    return h.response({ message: response });
   } catch (error) {
     return Boom.badRequest(error);
   }

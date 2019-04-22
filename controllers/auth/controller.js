@@ -83,7 +83,7 @@ const checkAuth = async (request, h) => {
 const logout = async (request, h) => {
   const options = _.clone(config.cookieOptions);
   options.ttl = 'Thu, 01 Jan 1970 00:00:00 GMT';
-  return h.response('User logged out').state('token', null, options);
+  return h.response({ message: 'User logged out' }).state('token', null, options);
 };
 
 const validateToken = async (decoded, request /* , h */) => {

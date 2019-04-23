@@ -1,4 +1,5 @@
 const random = require('lodash/random');
+const get = require('lodash/get');
 
 const clientData = () => ({
   first_name: 'testing',
@@ -19,8 +20,8 @@ const createClient1 = async (request, expect, validate = false) => {
       .post('/api/v1/userType1')
       .send(clientInfo)
       .expect((response) => {
-        uuid = response.text;
-        expect(response.text.length).is.equal(36);
+        uuid = get(response, 'body.token');
+        expect(uuid.length).is.equal(36);
       })
       .catch(error => console.log('POST /api/v1/userType1: ', error));
 
@@ -31,15 +32,15 @@ const createClient1 = async (request, expect, validate = false) => {
         .get(`/api/v1/user/getValidationCode?uuid=${uuid}`)
         .expect(200)
         .expect((response) => {
-          uuidEmail = response.text;
-          expect(response.text.length).is.equal(36);
+          uuidEmail = get(response, 'body.token');
+          expect(uuidEmail.length).is.equal(36);
         })
         .catch(error => console.log('Create client get validation code: ', error));
       await request
         .get(`/api/v1/user/validateEmail?uuid=${uuid}&token=${uuidEmail}`)
         .expect(200)
         .expect((response) => {
-          expect(response.text).is.equal('Email validated');
+          expect(get(response, 'body.message')).is.equal('Email validated');
         })
         .catch(error => console.log('Create client email validation: ', error));
     }

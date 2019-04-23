@@ -21,7 +21,7 @@ const validateEmail = {
 };
 
 const forgotPassword = {
-  payload: {
+  query: {
     email: joi.string().email().min(8).max(355)
       .required(),
   },
@@ -32,6 +32,7 @@ const resetPassword = {
     password: configValidation.password,
     password_verify: configValidation.password,
     token: joi.string().uuid().required(),
+    uuid: joi.string().uuid().required(),
   },
 };
 

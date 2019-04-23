@@ -7,7 +7,13 @@ const app = require('../../system/server');
 const config = require('../../system/config');
 const { createClient1 } = require('../helpers/create_client');
 const { consoleError, cookieCutter } = require('../helpers/methods');
-const { invalidToken } = require('../helpers/constants');
+const {
+  invalidToken,
+  passwordNotPattern,
+  passwordTemp,
+  passwordTooLong,
+  passwordTooShort,
+} = require('../helpers/constants');
 
 describe('Auth route tests', () => {
   let type1NotValidated;
@@ -67,7 +73,7 @@ describe('Auth route tests', () => {
     it('should take email and password that do not match and return error', (done) => {
       request
         .post('/api/v1/auth/login')
-        .send({ email: type1Validated.email, password: 'asdfSDF234' })
+        .send({ email: type1Validated.email, password: passwordTemp })
         .expect(400)
         .expect((response) => {
           expect(response.body.message).to.equal('There is no account with this username or password.');
@@ -102,7 +108,7 @@ describe('Auth route tests', () => {
         .post('/api/v1/auth/login')
         .send({
           email: type1Validated.email,
-          password: 'asdfasdfASDFASDF234234234asfdasdfasdfasdf;lasdfklajsdhflkasdgfhalskdhasdlgkjhasdlkjhasdlfkjhasdfl',
+          password: passwordTooLong,
         })
         .expect(400)
         .expect((response) => {
@@ -114,7 +120,7 @@ describe('Auth route tests', () => {
     it('should take a password that is too short and return an error', (done) => {
       request
         .post('/api/v1/auth/login')
-        .send({ email: type1Validated.email, password: 'aA1!' })
+        .send({ email: type1Validated.email, password: passwordTooShort })
         .expect(400)
         .expect((response) => {
           expect(response.body.message).to.equal('Invalid request payload input');
@@ -125,7 +131,7 @@ describe('Auth route tests', () => {
     it('should take a password that does not match pattern and return an error', (done) => {
       request
         .post('/api/v1/auth/login')
-        .send({ email: type1Validated.email, password: 'passwordisnogood' })
+        .send({ email: type1Validated.email, password: passwordNotPattern })
         .expect(400)
         .expect((response) => {
           expect(response.body.message).to.equal('Invalid request payload input');

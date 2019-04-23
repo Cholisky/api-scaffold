@@ -55,10 +55,15 @@ const getValidationCode = async (request, h) => {
 
 const forgotPassword = async (request, h) => {
   try {
-    const email = get(request, 'payload.email');
-    const token = model.getPasswordToken(email);
-    // TODO: this should mail the token to the user in a link
-    return h.response({ token });
+    const email = get(request, 'query.email');
+    const token = await model.getNewPasswordToken(email);
+    if (token.errorMessage) {
+      return Boom.badRequest(token.errorMessage);
+    }
+    // TODO: this should mail the token and the user uuid to the user in a link
+    // TODO: the token and uuid should not be returned from this method once email is integrated
+    // TODO: https://testapp.com/login/forgotPassword?uuid=${uuid}&token=${token}
+    return h.response(token);
   } catch (error) {
     return Boom.badRequest(error);
   }
@@ -66,10 +71,19 @@ const forgotPassword = async (request, h) => {
 
 const resetPassword = async (request, h) => {
   try {
-    const token = get(request, 'payload.token');
     const password = get(request, 'payload.password');
-    const response = await model.resetPassword(token, password);
-    return h.response({ message: response });
+    if (password !== get(request, 'payload.password_verify')) {
+      return Boom.badRequest('Passwords do not match');
+    }
+    const token = get(request, 'payload.token');
+    const uuid = get(request, 'payload.uuid');
+
+    const resetResult = await model.resetPassword(uuid, token, password);
+    if (resetResult.errorMessage) {
+      return Boom.badRequest(resetResult.errorMessage);
+    }
+
+    return h.response({ message: 'Password updated successfully' });
   } catch (error) {
     return Boom.badRequest(error);
   }

@@ -66,10 +66,13 @@ const getUserByUUID = async (userUUID) => {
   }
 };
 
-const setEmailValidated = async (userUuid, uuid) => {
+const setEmailValidated = async (uuid, token) => {
   try {
-    const [user] = await db('app_user').where('app_user_uuid', userUuid);
-    const [tokenData] = await db('email_token').where({ app_user_id: user.id, token: uuid });
+    const user = await getUserByUUID(uuid);
+    if (!user) {
+      return { errorMessage: 'Invalid token' };
+    }
+    const tokenData = await db('email_token').where({ app_user_id: user.id, token }).first();
 
     await db('email_token').delete().where('app_user_id', user.id);
 
@@ -106,46 +109,44 @@ const getNewEmailValidation = async (userId) => {
   }
 };
 
-// const getValidationCode = uuid => db('app_user')
-//   .innerJoin('email_token', 'app_user.id', 'email_token.app_user_id')
-//   .select(['token', 'token_expiry'])
-//   .where('app_user.app_user_uuid', uuid)
-//   .first();
-
-const getPasswordToken = async (email) => {
+const getNewPasswordToken = async (email) => {
   try {
-    const [user] = await db('app_user').where('email', email);
-    if (!user || user.email_verified) {
-      return Error('Invalid token');
-    }
     const token = uuidv4();
-    await db('app_user').update({
-      password_reset_token: token,
-      password_reset_token_expiry: moment().add(1, 'hour'),
-    }).where('id', user.id);
-    return token;
+    const user = await db('app_user').where({ email }).first();
+    if (!user) {
+      return { errorMessage: 'Invalid token' };
+    }
+    return db.transaction(trx => trx
+      .del()
+      .from('password_token')
+      .where('app_user_id', user.id)
+      .then(() => trx
+        .insert({
+          token,
+          token_expiry: moment().add(config.tokens.resetPasswordExpiry, 'day').format('YYYY-MM-DD HH:mm:ss'),
+          app_user_id: user.id,
+        }, ['token', 'token_expiry'])
+        .into('password_token')
+        .then(result => ({ token: result[0].token, uuid: user.app_user_uuid }))));
   } catch (error) {
     return error;
   }
 };
 
-const resetPassword = async (token, password) => {
+const resetPassword = async (uuid, token, password) => {
   try {
-    const [user] = await db('app_user').where('password_reset_token', token);
+    const user = await getUserByUUID(uuid);
     if (!user) {
-      return Error('Invalid token');
+      return { errorMessage: 'Invalid token' };
     }
-    if (moment(get(user, 'password_reset_token_expiry')).isBefore(moment())) {
-      return Error('Token expired');
+    const tokenData = await db('password_token').where({ app_user_id: user.id, token }).first();
+    await db('password_token').delete().where('app_user_id', user.id);
+
+    if (!tokenData || !user || moment(tokenData.token_expiry).isBefore(moment())) {
+      return { errorMessage: 'Invalid token' };
     }
     const hashedPassword = await crypt.hashPassword(password);
-
-    await db('app_user').update({
-      password_reset_token: null,
-      password_reset_token_expiry: null,
-      password: hashedPassword,
-    }).where('id', user.id);
-    return 'Password updated successfully';
+    return db('app_user').update('password', hashedPassword).where('id', user.id);
   } catch (error) {
     return error;
   }
@@ -155,8 +156,7 @@ module.exports = {
   insert,
   getUserByUUID,
   setEmailValidated,
-  // getValidationCode,
   getNewEmailValidation,
-  getPasswordToken,
+  getNewPasswordToken,
   resetPassword,
 };

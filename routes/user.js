@@ -34,7 +34,7 @@ exports.plugin = {
         validate: validator.getValidationCode,
       },
     }, {
-      method: 'POST',
+      method: 'GET',
       path: '/forgotPassword',
       options: {
         description: 'endpoint to get password reset token',

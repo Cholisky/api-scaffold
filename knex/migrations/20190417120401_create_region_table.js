@@ -3,8 +3,7 @@ exports.up = knex => knex.schema
     table.increments('id');
     table.string('name', 50).notNullable();
     table.string('short_name', 2).notNullable();
-    table.integer('country_id').unsigned().notNullable();
-    table.foreign('country_id', 'country.id').onDelete('RESTRICT');
+    table.integer('country_id').unsigned().notNullable().references('id').inTable('country');
   });
 
 exports.down = knex => knex.schema.dropTable('region');

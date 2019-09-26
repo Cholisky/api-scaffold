@@ -4,7 +4,7 @@ const { database } = require('./system/config');
 
 module.exports = {
   development: {
-    client: 'pg',
+    client: 'mysql',
     connection: {
       host: process.env.DB_HOST || database.host,
       user: process.env.DB_USERNAME || database.userName,
@@ -12,6 +12,14 @@ module.exports = {
       database: process.env.DB_NAME || database.databaseName,
       charset: 'utf8',
     },
+    // client: 'pg',
+    // connection: {
+    //   host: process.env.DB_HOST || database.host,
+    //   user: process.env.DB_USERNAME || database.userName,
+    //   password: process.env.DB_PASSWORD || database.password,
+    //   database: process.env.DB_NAME || database.databaseName,
+    //   charset: 'utf8',
+    // },
     pool: { min: 5, max: 10 },
     migrations: {
       directory: `${__dirname}/knex/migrations`,

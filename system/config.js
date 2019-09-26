@@ -10,9 +10,9 @@ module.exports = {
   env: process.env.ENV,
   database: {
     host: 'localhost',
-    userName: 'testuser',
-    password: 'testpassword',
-    databaseName: 'testapp',
+    userName: 'bitBlockRoot',
+    password: 'MitchDrinksRum!1',
+    databaseName: 'bitBlock',
   },
   protocol: process.env.PROTOCOL || 'http://',
   localAddress: {
